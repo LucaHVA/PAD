@@ -1,0 +1,11 @@
+{
+  "database": {
+    "host": "",
+    "port": 3366,
+    "timeout": 30000,
+    "username": "",
+    "password": "",
+    "database": "",
+    "connectionLimit": 10
+  }
+}
