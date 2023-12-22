@@ -1,11 +1,11 @@
 {
   "database": {
-    "host": "",
-    "port": 3366,
+    "host": "localhost",
+    "port": 3306,
     "timeout": 30000,
-    "username": "",
-    "password": "",
-    "database": "",
+    "username": "luca",
+    "password": "wachtwoord",
+    "database": "pad_herkansing",
     "connectionLimit": 1
   }
 }

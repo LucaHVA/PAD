@@ -43,7 +43,7 @@ class UsersRoutes {
                     //return just the username for now, never send password back!
                     res.status(this.#errorCodes.HTTP_OK_CODE).json({"username": data[0].username});
                 } else {
-                    //wrong username
+                    //wrong username s
                     res.status(this.#errorCodes.AUTHORIZATION_ERROR_CODE).json({reason: "Wrong username or password"});
                 }
             } catch (e) {
