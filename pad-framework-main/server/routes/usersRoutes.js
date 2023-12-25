@@ -19,6 +19,7 @@ class UsersRoutes {
 
         //call method per route for the users entity
         this.#login()
+        this.#getUserId()
     }
 
     /**
@@ -34,14 +35,15 @@ class UsersRoutes {
 
             try {
                 const data = await this.#databaseHelper.handleQuery({
-                    query: "SELECT username, password FROM users WHERE username = ? AND password = ?",
+                    query: "SELECT username, password, FROM users WHERE username = ? AND password = ?",
                     values: [username, password]
                 });
 
                 //if we founnd one record we know the user exists in users table
                 if (data.length === 1) {
                     //return just the username for now, never send password back!
-                    res.status(this.#errorCodes.HTTP_OK_CODE).json({"username": data[0].username});
+                    res.status(this.#errorCodes.HTTP_OK_CODE).json({"username": data[0].username
+                    });
                 } else {
                     //wrong username s
                     res.status(this.#errorCodes.AUTHORIZATION_ERROR_CODE).json({reason: "Wrong username or password"});
@@ -51,6 +53,29 @@ class UsersRoutes {
             }
         });
     }
+    #getUserId(){
+        this.#app.get("/users/:username",async (req, res)=>{
+                const username=req.params.username
+                try {
+                    const userId=await this.#databaseHelper.handleQuery({
+                        query: "SELECT id FROM users WHERE username =?",
+                        values:[username]
+                    });
+                    if (userId.length===1){
+                        res.status(this.#errorCodes.HTTP_OK_CODE).json({id:userId[0].id})
+
+                    } else{
+                        res.status(this.#errorCodes.AUTHORIZATION_ERROR_CODE).json({reason: "Invalid User ID"});
+                    }
+                }catch (e){
+                    res.status(this.#errorCodes.BAD_REQUEST_CODE).json({reason: e});
+
+                }
+
+            }
+        ) }
+
+
 }
 
 module.exports = UsersRoutes

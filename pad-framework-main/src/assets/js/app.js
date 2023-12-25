@@ -26,6 +26,7 @@ export class App {
     static CONTROLLER_WELCOME = "welcome";
     static CONTROLLER_UPLOAD = "upload";
     static CONTROLLER_REGISTER_TRANSACTION="register_transactions";
+    static CONTROLLER_OVERVIEW="overview";
 
     constructor() {
         //Always load the navigation
@@ -80,6 +81,9 @@ export class App {
             case App.CONTROLLER_UPLOAD:
                 App.isLoggedIn(() => new UploadController(), () => new LoginController());
                 break;
+
+            case App.CONTROLLER_OVERVIEW:
+                App.isLoggedIn(()=> new OverviewController(), ()=> new LoginController())
 
 
             default:

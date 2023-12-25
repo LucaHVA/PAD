@@ -1,5 +1,7 @@
 import {Controller} from "./controller.js";
 import {TransactionRepository} from "../repositories/transactionRepository.js";
+import {App} from "../app.js";
+import {UsersRepository} from "../repositories/usersRepository.js";
 
 /**
  * controller for creating transactions
@@ -8,11 +10,18 @@ import {TransactionRepository} from "../repositories/transactionRepository.js";
 export  class RegisterTransactionController extends Controller{
     #registerTransactionView;
     #transactionsRepository;
+    #usersRepository;
+    #app
 
     constructor() {
         super();
 this.#transactionsRepository=new TransactionRepository
+        this.#usersRepository= new UsersRepository()
+
+
         this.#setupview();
+
+
 
     }
 
@@ -22,6 +31,11 @@ this.#registerTransactionView = await super.loadHtmlIntoContent("html_views/regi
 
 this.#registerTransactionView.querySelector('.btn').addEventListener("click",
     (event)=>this.#saveTransaction(event))
+
+        // let username=App.sessionManager.get("username")
+        // let userId = await this.#usersRepository.getUserId(username)
+        //
+        // console.log("yo"+userId)
 
         this.#setDefaultDate();
 }
@@ -38,7 +52,11 @@ async #saveTransaction(event) {
     let description = this.#registerTransactionView.querySelector("#inputDescription").value
     let amount = this.#registerTransactionView.querySelector("#inputAmount").value
     let date = this.#registerTransactionView.querySelector("#inputDate").value
-    console.log(description, amount, date);
+    let username=App.sessionManager.get("username")
+    let userId = await this.#usersRepository.getUserId(username)
+
+
+    console.log(description, amount, date,userId.id);
 
     const errorMessage = this.#registerTransactionView.querySelector(".error")
     if (description.length === 0 || amount.length === 0) {
@@ -49,10 +67,11 @@ async #saveTransaction(event) {
         errorMessage.innerHTML = ""
         try {
             errorMessage.innerHTML="";
-            const data = await this.#transactionsRepository.createTransaction(description, amount, date)
+            const data = await this.#transactionsRepository.createTransaction(description, amount, date, userId.id)
             errorMessage.innerHTML="gelukt!"
             this.#registerTransactionView.querySelector("#inputDescription").value = "";
             this.#registerTransactionView.querySelector("#inputAmount").value = "";
+
             console.log(data)
         }
         catch (e){

@@ -43,6 +43,7 @@ export class LoginController extends Controller{
         const username = this.#loginView.querySelector("#exampleInputUsername").value;
         const password = this.#loginView.querySelector("#exampleInputPassword").value;
 
+
         try{
             const user = await this.#usersRepository.login(username, password);
 

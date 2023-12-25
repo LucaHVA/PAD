@@ -47,4 +47,8 @@ export class UsersRepository {
     async update(id, values = {}) {
 
     }
+    async getUserId(username){
+        return await this.#networkManager.doRequest(`${this.#route}/${username}`, "GET");
+    }
+
 }
