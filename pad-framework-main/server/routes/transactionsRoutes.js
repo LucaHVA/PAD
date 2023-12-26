@@ -37,11 +37,11 @@ class TransactionsRoutes {
 
             try {
                 const data = await this.#databaseHelper.handleQuery({
-                    query: "SELECT id, amount, description, date FROM transactions WHERE user_id=?",
+                    query: "SELECT id, amount, description,id date FROM transactions WHERE user_id=? ORDER BY id DESC",
                     values: [req.params.user_id]
                 });
                 if (data.length >= 1) {
-                    res.status(this.#httpErrorCodes.HTTP_OK_CODE).send({transactionsSize: data.length, transactions:data} );
+                    res.status(this.#httpErrorCodes.HTTP_OK_CODE).send({data} );
                 } else if (req.body.user_id === 0) {
                     res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({reason: "No user id has been found"})
 
@@ -53,6 +53,8 @@ class TransactionsRoutes {
             }
         });
     }
+
+
 }
 
 module.exports = TransactionsRoutes;
