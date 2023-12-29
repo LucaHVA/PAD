@@ -5,6 +5,7 @@ import {UsersRepository} from "../repositories/usersRepository.js";
 
 /**
  * controller for creating transactions
+ * @author Luca Rijkbost
  */
 
 export  class RegisterTransactionController extends Controller{

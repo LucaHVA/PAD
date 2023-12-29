@@ -3,6 +3,10 @@ import {TransactionRepository} from "../repositories/transactionRepository.js";
 import {UsersRepository} from "../repositories/usersRepository.js";
 import {App} from "../app.js";
 
+/**
+ * @author Luca Rijkbost
+ * controller to see the overview
+ */
 
 export class OverviewController extends Controller {
     #overviewView;
@@ -31,10 +35,10 @@ export class OverviewController extends Controller {
 
         let transactionsResponse = await this.#transactionRepository.collectTransaction(userId.id)
         let transactions = transactionsResponse.data;
+        console.log(transactions)
 
-        // //format the date
-        // const formattedDate = new Date(transactions.date).toISOString().split('T')[0];
-        console.log(transactions.date)
+        //format the date
+
 
 
 
@@ -42,26 +46,48 @@ export class OverviewController extends Controller {
         const transactionsContainer = document.getElementById("transactions-container")
         transactionsContainer.style.height = "500px"
 
-        console.log(transactions)
-        //creates a box for every transaction
-        transactions.forEach(transaction => {
-            const transactionBox = document.createElement("div");
-            transactionBox.className = "transaction-box border border-primary rounded-pill bg-primary text-white p-4 m-4 text-center";
-            transactionsContainer.style.overflowY = "auto"
+        if (transactions.size===0){
+            transactionsContainer.innerHTML = "<p style='text-align: center;'>No transactions found.</p>";
+            transactionsContainer.style.overflowY = "hidden"; // Adjust overflow style if needed
+        } else {
 
-            //fills the boxes with the information
-            transactionBox.innerHTML = `
+            //creates a box for every transaction
+            transactions.forEach(transaction => {
+
+                const transactionBox = document.createElement("div");
+                transactionBox.className = "transaction-box border border-primary rounded-pill bg-primary text-white p-4 m-4 text-center";
+                transactionsContainer.style.overflowY = "auto"
+                const formattedDate = new Date(transaction.date).toISOString().split('T')[0];
+                //adds button to html
+                const deleteButton = document.createElement("button");
+                deleteButton.className = "btn btn-danger"
+                deleteButton.innerHTML = "Delete"
+
+                const editButton = document.createElement("button");
+                editButton.className = "btn btn-warning";
+                editButton.innerHTML = "Edit";
+
+
+
+                //fills the boxes with the information
+                transactionBox.innerHTML = `
             <p>amount: € ${transaction.amount}</p>
-            <p>date: ${transaction.date}</p>
+            <p>date: ${formattedDate}</p>
             <p>description: ${transaction.description}</p>
         `;
-            transactionBox.addEventListener('click',()=>{
-                console.log(`${transaction.id}`)
-            })
+                deleteButton.addEventListener('click', async () => {
+                    transactionsContainer.removeChild(transactionBox);
+                    this.#transactionRepository.deleteTransaction(`${transaction.id}`)
+                })
 
-            // append the transaction box to the container
-            transactionsContainer.appendChild(transactionBox);
-        });
+                // append the transaction box to the container
+                transactionsContainer.appendChild(transactionBox);
+                transactionBox.appendChild(deleteButton);
+                transactionBox.appendChild(editButton);
+
+
+            });
+        }
 
         console.log(transactions)
     }
