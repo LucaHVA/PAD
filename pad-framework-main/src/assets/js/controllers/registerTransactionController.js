@@ -32,13 +32,10 @@ this.#registerTransactionView = await super.loadHtmlIntoContent("html_views/regi
 
 this.#registerTransactionView.querySelector('.btn').addEventListener("click",
     (event)=>this.#saveTransaction(event))
-
-        // let username=App.sessionManager.get("username")
-        // let userId = await this.#usersRepository.getUserId(username)
-        //
-        // console.log("yo"+userId)
-
         this.#setDefaultDate();
+
+this.#registerTransactionView.querySelector('#spendToggle').addEventListener("click",
+    ()=> this.#toggleSpending());
 }
 
 
@@ -46,6 +43,26 @@ this.#registerTransactionView.querySelector('.btn').addEventListener("click",
 
         this.#registerTransactionView.querySelector('#inputDate').value = new Date().toISOString().split('T')[0];
     }
+
+    #toggleSpending(){
+        const toggleSwitch = this.#registerTransactionView.querySelector('#spendToggle');
+        const amountInput = this.#registerTransactionView.querySelector("#inputAmount");
+
+        if (toggleSwitch.checked) {
+            // If the switch is checked, set green background for gaining
+            toggleSwitch.classList.remove("bg-white");
+            toggleSwitch.classList.add("bg-danger");
+
+        } else {
+            // If the switch is not checked, set red background for spending
+            toggleSwitch.classList.remove("bg-danger");
+            toggleSwitch.classList.add("bg-white");
+
+        }
+
+    }
+
+
 
 async #saveTransaction(event) {
     event.preventDefault();
@@ -60,16 +77,27 @@ async #saveTransaction(event) {
     console.log(description, amount, date,userId.id);
 
     const errorMessage = this.#registerTransactionView.querySelector(".error")
-    if (description.length === 0 || amount.length === 0) {
-        errorMessage.innerHTML = "Vakken mogen niet leeg zijn"
+
+
+    if (description.length === 0 || amount.length === 0 ) {
+        errorMessage.innerHTML = "Vakken mogen niet leeg zijn";
+        return
+    } if (amount.includes('-')){
+        errorMessage.innerHTML='nope'
         return
     }
     {
         errorMessage.innerHTML = ""
         try {
+            let processedAmount = parseFloat(amount);
+            const toggleSwitch = this.#registerTransactionView.querySelector('#spendToggle');
+            if (toggleSwitch.checked) {
+                processedAmount = -Math.abs(processedAmount);
+            }
+
             errorMessage.innerHTML="";
-            const data = await this.#transactionsRepository.createTransaction(description, amount, date, userId.id)
-            errorMessage.innerHTML="gelukt!"
+            const data = await this.#transactionsRepository.createTransaction(description, processedAmount, date, userId.id)
+            errorMessage.innerHTML="gelukt!";
             this.#registerTransactionView.querySelector("#inputDescription").value = "";
             this.#registerTransactionView.querySelector("#inputAmount").value = "";
 
