@@ -8,6 +8,13 @@ import {App} from "../app.js";
  * controller to see the overview
  */
 
+
+
+/**
+ * @author Luca Rijkbost
+ * controller to see the overview
+ */
+
 export class OverviewController extends Controller {
     #overviewView;
     #transactionRepository;
@@ -23,83 +30,74 @@ export class OverviewController extends Controller {
     async #setupView() {
         this.#overviewView = await super.loadHtmlIntoContent("html_views/overview.html");
 
-
         await this.#showOverview();
     }
 
-    // function that shows all transactions with the functions of the buttons
+    // Function that shows all transactions with the functions of the buttons
     async #showOverview() {
+        // Get the user id
+        const username = App.sessionManager.get("username");
+        const userId = await this.#usersRepository.getUserId(username);
 
-        //get the user id
-        const username = App.sessionManager.get("username")
-        const userId = await this.#usersRepository.getUserId(username)
-
-        //extracts a list from the database
-        let transactionsResponse = await this.#transactionRepository.collectTransaction(userId.id)
+        // Extract a list from the database
+        let transactionsResponse = await this.#transactionRepository.collectTransaction(userId.id);
         let transactions = transactionsResponse.data;
-        console.log(transactions)
+        console.log(transactions);
 
-
-
-        //calls to a container that exists inside the html
-        const transactionsContainer = document.getElementById("transactions-container")
-        transactionsContainer.style.height = "500px"
+        // Calls to a container that exists inside the HTML
+        const transactionsContainer = document.getElementById("transactions-container");
+        transactionsContainer.style.height = "500px";
 
         if (transactions.size === 0) {
             transactionsContainer.innerHTML = "<p style='text-align: center;'>No transactions found.</p>";
-            transactionsContainer.style.overflowY = "hidden"; // adjust overflow style if needed
+            transactionsContainer.style.overflowY = "hidden"; // Adjust overflow style if needed
+
         } else {
-
-            //creates a box for every transaction
             transactions.forEach(transaction => {
-
                 const transactionBox = document.createElement("div");
-                transactionBox.className = "transaction-box border border-primary rounded-pill bg-primary text-white p-4 m-4 text-center";
-                transactionsContainer.style.overflowY = "auto"
+                transactionBox.className = "transaction-box border border-primary rounded-pill bg-primary text-white p-4 m-4 text-center d-flex justify-content-between align-items-center";
+                transactionsContainer.style.overflowY = "auto";
 
-                //formats the date
                 const formattedDate = new Date(transaction.date).toISOString().split('T')[0];
 
-                //adds button to html
+                const buttonsContainer = document.createElement("div");
+                buttonsContainer.className = "d-flex justify-content-between w-100";
+
                 const deleteButton = document.createElement("button");
-                deleteButton.className = "btn btn-danger"
-                deleteButton.innerHTML = "Delete"
+                deleteButton.className = "btn btn-danger";
+                deleteButton.innerHTML = "Delete";
 
                 const editButton = document.createElement("button");
                 editButton.className = "btn btn-warning";
                 editButton.innerHTML = "Edit";
 
+                const isNegative = transaction.amount.toString().includes('-');
+                const amountDisplay = isNegative ? transaction.amount : `+ ${transaction.amount}`;
 
-                //fills the boxes with the information
                 transactionBox.innerHTML = `
-            <p>amount: € ${transaction.amount}</p>
-            <p>date: ${formattedDate}</p>
-            <p>description: ${transaction.description}</p>
-        `;
-                //adds delete function
+                    <p>amount: € ${amountDisplay}</p>
+                    <p>date: ${formattedDate}</p>
+                    <p>description: ${transaction.description}</p>
+                `;
+
                 deleteButton.addEventListener('click', async () => {
                     transactionsContainer.removeChild(transactionBox);
-                    this.#transactionRepository.deleteTransaction(`${transaction.id}`)
-                })
+                    await this.#transactionRepository.deleteTransaction(`${transaction.id}`);
+                });
 
-                //adds the edit function
-
+                let originalAmount = transaction.amount
+                let originalDate = formattedDate;
+                let originalDescription = transaction.description;
                 editButton.addEventListener('click', async () => {
-                    const originalAmount = transaction.amount;
-                    const originalDate = formattedDate;
-                    const originalDescription = transaction.description;
 
-                    //changes the inner information of the transactionbox so it can be edited
                     transactionBox.innerHTML = `
-                <input type="text" class="form-control" value="${originalAmount}" id="editAmount">
-                <input type="date" class="form-control" value="${originalDate}" id="editDate">
-                <input type="text" class="form-control" value="${originalDescription}" id="editDescription">
-                <button class="btn btn-success" id="saveEdit">Save</button>
-                <button class="btn btn-danger" id="cancelEdit">Cancel</button>
-            `;
+                        <input type="number" min="1" step="any" class="form-control" value="${originalAmount}" id="editAmount">
+                        <input type="date" class="form-control" value="${originalDate}" id="editDate">
+                        <input type="text" class="form-control" value="${originalDescription}" id="editDescription">
+                        <button class="btn btn-success" id="saveEdit">Save</button>
+                        <button class="btn btn-danger" id="cancelEdit">Cancel</button>
+                    `;
 
-
-                    //inserts the newly edited information
                     const saveEditButton = transactionBox.querySelector("#saveEdit");
                     saveEditButton.addEventListener('click', async () => {
                         const editedTransaction = {
@@ -108,52 +106,67 @@ export class OverviewController extends Controller {
                             date: document.getElementById("editDate").value,
                             description: document.getElementById("editDescription").value,
                         };
-                        this.#transactionRepository.editTransaction(editedTransaction.id, editedTransaction.amount,
-                            editedTransaction.date, editedTransaction.description)
 
-                        //changes the transactionbox so you can't edit
+                        if (editedTransaction.amount === '' || editedTransaction.date === '' || editedTransaction.description === '') {
+                            // Create an error message element
+                            const errorMessage = document.createElement('p');
+                            errorMessage.classList.add('text-danger');
+                            errorMessage.textContent = 'Error: All fields must be filled.';
+
+                            // Append the error message below the transaction box
+                            transactionBox.insertAdjacentElement('afterend', errorMessage);
+                            return; // Stop the function if there's an error
+                        }
+
+                        await this.#transactionRepository.editTransaction(
+                            editedTransaction.id,
+                            editedTransaction.amount,
+                            editedTransaction.date,
+                            editedTransaction.description
+                        );
+
+                        const isNegativeEdited = editedTransaction.amount.includes('-');
+                        const editedAmountDisplay = isNegativeEdited ? editedTransaction.amount : `+${editedTransaction.amount}`;
+
                         transactionBox.innerHTML = `
-            <p>amount: € ${editedTransaction.amount}</p>
-            <p>date: ${editedTransaction.date}</p>
-            <p>description: ${editedTransaction.description}</p>
-        `;
-
-                        // re-add the edit and delete buttons
+                            <p>amount: €${editedAmountDisplay}</p>
+                            <p>date: ${editedTransaction.date}</p>
+                            <p>description: ${editedTransaction.description}</p>
+                        `;
 
                         transactionBox.appendChild(deleteButton);
                         transactionBox.appendChild(editButton);
+                        console.log("amount before edit "+originalAmount)
+                        console.log("amount when edited "+ editedTransaction.amount)
+                        originalAmount = editedTransaction.amount;
+                        console.log("amount should be edited"+ originalAmount)
+                        originalDescription = editedTransaction.description;
+                        originalDate = editedTransaction.date;
 
-                    })
 
-                    //cancels and reverts the transactionbox back to its original state
-                    transactionBox.querySelector("#cancelEdit").addEventListener('click',async ()=>{
+                    });
+
+                    transactionBox.querySelector("#cancelEdit").addEventListener('click', async () => {
+
+                        const existingErrorMessage = transactionBox.nextElementSibling;
+                        if (existingErrorMessage && existingErrorMessage.classList.contains('text-danger')) {
+                            existingErrorMessage.remove();
+                        }
                         transactionBox.innerHTML = `
-               <p>amount: € ${originalAmount}</p>
-              <p>date: ${originalDate}</p>
-            <p>description: ${originalDescription}</p>
-        `;
+                            <p>amount: € ${originalAmount}</p>
+                            <p>date: ${originalDate}</p>
+                            <p>description: ${originalDescription}</p>
+                        `;
 
-                        // re-add the edit and delete buttons
                         transactionBox.appendChild(deleteButton);
                         transactionBox.appendChild(editButton);
-                    })
+                    });
+                });
 
-                    document.getElementById("editAmount").value = originalAmount;
-                    document.getElementById("editDate").value = originalDate;
-                    document.getElementById("editDescription").value = originalDescription;
-                })
-
-                // append the transaction box to the container
                 transactionsContainer.appendChild(transactionBox);
                 transactionBox.appendChild(deleteButton);
                 transactionBox.appendChild(editButton);
-
-
             });
-
         }
-
-        console.log(transactions)
     }
-
 }

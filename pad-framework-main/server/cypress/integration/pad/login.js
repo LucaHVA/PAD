@@ -5,7 +5,7 @@ describe("Login",  () => {
     //Run before each test in this context
     beforeEach(() => {
         //Go to the specified URL
-        cy.visit("http://localhost:8080");
+        cy.visit("http://localhost:3000");
     });
 
     //Test: Validate login form

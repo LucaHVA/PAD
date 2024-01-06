@@ -1,6 +1,6 @@
 <div class="container">
     <div class="row justify-content-md-center">
-        <div class="col-md-5">
+        <div class="col-md-8">
             <h2 class="mb-4 mt-5">Registreer Transactie</h2>
 
             <form class="transaction-form border border-primary rounded p-4 bg-primary text-white">
@@ -15,8 +15,9 @@
                     <div id="usernameHelp" class="form-text"></div>
                 </div>
                 <div class="mb-3">
-                    <label for="inputAmount" class="form-label">Bedrag</label>
-                    <input type="number" min="1"  step="any" class="form-control" id="inputAmount" placeholder="Vul hier het bedrag in">
+                    <label for="inputAmount" class="form-label">Bedrag (€)</label>
+                    <input type="number" min="1" step="any" class="form-control" id="inputAmount"
+                           placeholder="Vul hier het bedrag in">
                 </div>
 
                 <div class="mb-3">
@@ -24,8 +25,6 @@
                     <input type="date" class="form-control" id="inputDate"
                            placeholder="Vul de transactiedatum in">
                 </div>
-
-                <div class="error mb-3 text-danger"></div>
 
                 <button type="submit" class="btn btn-danger">Opslaan</button>
             </form>

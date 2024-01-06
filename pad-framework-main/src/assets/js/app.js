@@ -11,7 +11,7 @@ import { SessionManager } from "./framework/utils/sessionManager.js"
 import { LoginController } from "./controllers/loginController.js"
 import { NavbarController }  from "./controllers/navbarController.js"
 import { UploadController }  from "./controllers/uploadController.js"
-import { WelcomeController }  from "./controllers/welcomeController.js"
+// import { WelcomeController }  from "./controllers/welcomeController.js"
 import {RegisterTransactionController} from "./controllers/registerTransactionController.js";
 import {OverviewController} from "./controllers/overviewController.js";
 
@@ -32,9 +32,8 @@ export class App {
     constructor() {
         //Always load the navigation
         App.loadController(App.CONTROLLER_NAVBAR);
-
         //Attempt to load the controller from the URL, if it fails, fall back to the welcome controller.
-        App.loadControllerFromUrl(App.CONTROLLER_WELCOME);
+        App.loadControllerFromUrl(App.CONTROLLER_REGISTER_TRANSACTION);
     }
 
     /**
@@ -63,16 +62,17 @@ export class App {
         }
 
         //Otherwise, load any of the other controllers
-        App.setCurrentController(name, controllerData);
-        
+        // App.setCurrentController(name, controllerData);
+        App.setCurrentController(RegisterTransactionController);
+
         switch (name) {
             case App.CONTROLLER_LOGIN:
-                App.isLoggedIn(() => new WelcomeController(), () => new LoginController());
+                App.isLoggedIn(() => new RegisterTransactionController(), () => new LoginController());
                 break;
 
-            case App.CONTROLLER_WELCOME:
-                App.isLoggedIn(() => new WelcomeController(), () => new LoginController());
-                break;
+            // case App.CONTROLLER_WELCOME:
+            //     App.isLoggedIn(() => new RegisterTransactionController(), () => new LoginController());
+            //     break;
 
             case App.CONTROLLER_REGISTER_TRANSACTION:
                 App.setCurrentController(name)
@@ -185,7 +185,7 @@ export class App {
 
 window.addEventListener("hashchange", function() {
     App.dontSetCurrentController = true;
-    App.loadControllerFromUrl(App.CONTROLLER_WELCOME);
+    App.loadControllerFromUrl(App.CONTROLLER_REGISTER_TRANSACTION);
     App.dontSetCurrentController = false;
 });
 

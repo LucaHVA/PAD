@@ -43,13 +43,12 @@ export class LoginController extends Controller{
         const username = this.#loginView.querySelector("#exampleInputUsername").value;
         const password = this.#loginView.querySelector("#exampleInputPassword").value;
 
-
         try{
             const user = await this.#usersRepository.login(username, password);
 
             //let the session manager know we are logged in by setting the username, never set the password in localstorage
             App.sessionManager.set("username", user.username);
-            App.loadController(App.CONTROLLER_WELCOME);
+            App.loadController(App.CONTROLLER_REGISTER_TRANSACTION);
         } catch(error) {
             //if unauthorized error code, show error message to the user
             if(error.code === 401) {

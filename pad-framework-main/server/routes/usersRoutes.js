@@ -35,10 +35,9 @@ class UsersRoutes {
 
             try {
                 const data = await this.#databaseHelper.handleQuery({
-                    query: "SELECT username, password, FROM users WHERE username = ? AND password = ?",
+                    query: "SELECT username, password FROM users WHERE username = ? AND password = ?",
                     values: [username, password]
                 });
-
                 //if we founnd one record we know the user exists in users table
                 if (data.length === 1) {
                     //return just the username for now, never send password back!
