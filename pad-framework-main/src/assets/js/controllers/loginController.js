@@ -3,7 +3,7 @@
  * @author Pim Meijer
  */
 
-import { UsersRepository } from "../repositories/usersRepository.js";
+import { UserRepository } from "../repositories/userRepository.js";
 import { App } from "../app.js";
 import { Controller } from "./controller.js";
 
@@ -14,7 +14,7 @@ export class LoginController extends Controller{
 
     constructor() {
         super();
-        this.#usersRepository = new UsersRepository();
+        this.#usersRepository = new UserRepository();
 
         this.#setupView()
     }

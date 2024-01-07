@@ -1,7 +1,7 @@
 import {Controller} from "./controller.js";
 import {TransactionRepository} from "../repositories/transactionRepository.js";
 import {App} from "../app.js";
-import {UsersRepository} from "../repositories/usersRepository.js";
+import {UserRepository} from "../repositories/userRepository.js";
 
 /**
  * controller for creating transactions
@@ -17,7 +17,7 @@ export class RegisterTransactionController extends Controller {
     constructor() {
         super();
         this.#transactionsRepository = new TransactionRepository
-        this.#usersRepository = new UsersRepository()
+        this.#usersRepository = new UserRepository()
 
 
         this.#setupview();
@@ -26,7 +26,7 @@ export class RegisterTransactionController extends Controller {
     }
 
     async #setupview() {
-
+//loads html in
         this.#registerTransactionView = await super.loadHtmlIntoContent("html_views/registerTransaction.html");
 
         this.#registerTransactionView.querySelector('.btn').addEventListener("click",
@@ -44,8 +44,8 @@ export class RegisterTransactionController extends Controller {
 
     #toggleSpending() {
         const toggleSwitch = this.#registerTransactionView.querySelector('#spendToggle');
-        const amountInput = this.#registerTransactionView.querySelector("#inputAmount");
 
+        //if the toggle is used change the background to white
         if (toggleSwitch.checked) {
             // If the switch is checked, set green background for gaining
             toggleSwitch.classList.remove("bg-white");
@@ -64,18 +64,22 @@ export class RegisterTransactionController extends Controller {
     async #saveTransaction(event) {
         event.preventDefault();
 
+        //selects the values for later methods
         let description = this.#registerTransactionView.querySelector("#inputDescription").value
         let amount = this.#registerTransactionView.querySelector("#inputAmount").value
         let date = this.#registerTransactionView.querySelector("#inputDate").value
         let username = App.sessionManager.get("username")
         let userId = await this.#usersRepository.getUserId(username)
 
+        const transactionForm = document.querySelector('.transaction-form');
+//styling for the transactionforms
+        transactionForm.style.border = '2px solid #2F72B9';
+        transactionForm.style.backgroundColor = '#2F72B9';
 
-        console.log(description, amount, date, userId.id);
 
         const errorMessage = this.#registerTransactionView.querySelector(".error")
 
-
+//adds error in the case of a strange character or empty fields
         if (description.length === 0 || amount.length === 0) {
             errorMessage.innerHTML = "Vakken mogen niet leeg zijn";
             return
@@ -84,17 +88,21 @@ export class RegisterTransactionController extends Controller {
             errorMessage.innerHTML = 'U kan geen tekens gebruiken. bij een uitgave druk op de toggle knop'
             return
         }
+
+
         {
             errorMessage.innerHTML = ""
             try {
+                //parse to float to make the number negative
                 let processedAmount = parseFloat(amount);
                 const toggleSwitch = this.#registerTransactionView.querySelector('#spendToggle');
                 if (toggleSwitch.checked) {
                     processedAmount = -Math.abs(processedAmount);
                 }
-
+//sends the data repository so it can reach the database
                 errorMessage.innerHTML = "";
-                const data = await this.#transactionsRepository.createTransaction(description, processedAmount, date, userId.id)
+                const data = await this.#transactionsRepository.createTransaction
+                (description, processedAmount, date, userId.id)
                 errorMessage.innerHTML = "gelukt!";
                 this.#registerTransactionView.querySelector("#inputDescription").value = "";
                 this.#registerTransactionView.querySelector("#inputAmount").value = "";

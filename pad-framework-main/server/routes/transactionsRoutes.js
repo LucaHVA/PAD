@@ -16,6 +16,7 @@ class TransactionsRoutes {
         this.#editTransaction();
     }
 
+    //route initiated for posting the data to the database
     #createTransaction() {
         this.#app.post("/transactions", async (req, res) => {
                 try {
@@ -54,6 +55,7 @@ class TransactionsRoutes {
         });
     }
 
+    // route initiated for deleting a transaction within the chosen id
     #deleteTransaction() {
         this.#app.delete('/transactions/:id', async (req, res) => {
             try {
@@ -74,7 +76,7 @@ class TransactionsRoutes {
     }
 
 
-    // route initiated
+    // route initiated to edit a transaction with the right id
     #editTransaction() {
         this.#app.put('/transactions/:id', async (req, res) => {
             try {
