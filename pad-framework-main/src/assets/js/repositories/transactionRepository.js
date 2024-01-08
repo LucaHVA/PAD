@@ -39,6 +39,23 @@ collectTransactions(userId){
 }
 
     /**
+     * Sends a request to retrieve the total amount for a specific user.
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    getTotalTransaction(userId) {
+        return this.#networkManager.doRequest(`${this.#route}/total/${userId}`, "GET");
+    }
+    /**
+     * Sends a request to retrieve the date where to gotfor a specific user.
+     * @param {string} userId
+     * @returns {Promise<object>}
+     */
+    getBestDateTransaction(userId) {
+        return this.#networkManager.doRequest(`${this.#route}/maxAmountDate/${userId}`, "GET");
+    }
+
+    /**
      * Sends a request to delete a transaction.
      * @param {string} id
      * @returns {Promise<void>}

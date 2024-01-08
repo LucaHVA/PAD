@@ -48,7 +48,22 @@ export class OverviewController extends Controller {
 
         // Calls to a container that exists inside the HTML
         const transactionsContainer = document.getElementById("transactions-container");
-        transactionsContainer.style.height = "500px";
+        transactionsContainer.style.height = "vh-100";
+
+        const totalContainer = document.getElementById("transaction-total");
+        totalContainer.className = "transaction-box rounded-pill text-white p-4 m-2 text-center d-flex justify-content-between align-items-center";
+        totalContainer.style.backgroundColor = "#2F72B9";
+        totalContainer.style.overflowY = "auto";
+        await this.getTotal(userId)
+
+
+
+        // totalContainer.style.height = "100px";
+        const bestContainer = document.getElementById("transaction-best");
+        bestContainer.className = "transaction-box rounded-pill text-white p-4 m-2 text-center d-flex justify-content-between align-items-center";
+        bestContainer.style.backgroundColor = "#2F72B9";
+        bestContainer.style.overflowY = "auto";
+        await this.getBestDate(userId)
 
         if (transactions.size === 0) {
             transactionsContainer.innerHTML = "<p style='text-align: center;'>No transactions found.</p>";
@@ -57,18 +72,15 @@ export class OverviewController extends Controller {
             //if there are transactions load them all in boxes
             transactions.forEach(transaction => {
                 const transactionBox = document.createElement("div");
-                transactionBox.className = "transaction-box rounded-pill  text-white p-4 m-2 text-center d-flex justify-content-between align-items-center";
+                transactionBox.className = "transaction-box rounded-pill text-white p-4 m-2 text-center d-flex justify-content-between align-items-center";
                 transactionsContainer.style.overflowY = "auto";
                 transactionBox.style.backgroundColor = "#2F72B9";
 
                 //format the date to a local version
-                let formattedDate = new Date(transaction.date).toLocaleDateString('en-GB');
-
                 //make a container for the button for better calling
                 const buttonsContainer = document.createElement("div");
-                buttonsContainer.className = "d-flex justify-content-between w-30";
-
-                const deleteButton = document.createElement("button");
+                buttonsContainer.className = " d-flex justify-content-between w-30";
+               const deleteButton = document.createElement("button");
                 deleteButton.className = "btn btn-danger mr-2";
                 deleteButton.innerHTML = "Delete";
 
@@ -77,16 +89,18 @@ export class OverviewController extends Controller {
                 editButton.innerHTML = "Edit";
                 editButton.style.margin;
 
+
                 const isNegative = transaction.amount.toString().includes('-');//checks if the amount is negative
                 let formattedAmount = parseFloat(transaction.amount).toFixed(2);// makes it so that it has 2 decimals
                 const amountDisplay = isNegative ? formattedAmount : `+ ${formattedAmount}`;//if there was no negative found add a +
+                let formattedDate=this.#setFormatDate(transaction.date)
 
                 //shows the transaction info
                 transactionBox.innerHTML = `
                     <p class="amount">bedrag (€): ${amountDisplay}</p>
                     <p class="date"> ${formattedDate}</p>
-                    <p class="description"> ${transaction.description}</p>
-                `;
+                    <p class="description"> beschrijving: ${transaction.description}</p>
+      `;
 //method to delete a transaction
                 deleteButton.addEventListener('click', async () => {
                     //asks for confirmation
@@ -96,6 +110,8 @@ export class OverviewController extends Controller {
                         transactionsContainer.removeChild(transactionBox);
                         try {//Tries to delete it otherwise gives an error message in the console and on screen
                             await this.#transactionRepository.deleteTransaction(`${transaction.id}`);
+                            await this.getTotal(userId);
+                            await this.getBestDate(userId)
                         } catch (error) {
 
                             console.error("Error deleting transaction:", error);
@@ -107,6 +123,7 @@ export class OverviewController extends Controller {
 
                 //Method to insert new values inside the transaction
                 editButton.addEventListener('click', async () => {
+                    console.log(formattedDate)
                     transactionBox.innerHTML = `
                         <input type="number" min="1" step="any" class="form-control" value="${formattedAmount}" id="editAmount">
                         <input type="date" class="form-control" value="${formattedDate}" id="editDate">
@@ -162,8 +179,8 @@ export class OverviewController extends Controller {
                         //reverts the box back with it's edited values
                         transactionBox.innerHTML = `
                             <p>bedrag (€): ${editedAmountDisplay}</p>
-                            <p> ${editedFormattedDate}</p>
-                            <p>${editedTransaction.description}</p>
+                            <p> datum: ${editedFormattedDate}</p>
+                            <p>Beschrijving: ${editedTransaction.description}</p>
                         `;
 
                         //reads the buttons aswell
@@ -175,6 +192,9 @@ export class OverviewController extends Controller {
                         formattedAmount = editedTransaction.amount;
                      transaction.description = editedTransaction.description;
                         formattedDate = editedTransaction.date;
+
+                        await this.getTotal(userId);
+                        await this.getBestDate(userId)
                     });
 
                     //Reverts to the original value if you want to cancel
@@ -189,8 +209,8 @@ export class OverviewController extends Controller {
                         //reverts data back
                         transactionBox.innerHTML = `
                             <p>bedrag (€): ${originalAmountDisplay}</p>
-                            <p>${formattedDate}</p>
-                            <p>${transaction.description}</p>
+                            <p> datum: ${formattedDate}</p>
+                            <p> beschrijving: ${transaction.description}</p>
                         `;
 //re-adds button
                         transactionBox.appendChild(buttonsContainer)
@@ -206,4 +226,55 @@ export class OverviewController extends Controller {
             });
         }
     }
+
+
+    //method to get the total amount
+    async getTotal(userId){
+        const totalContainer= document.getElementById("transaction-total")
+        try {
+            const transactionResponse= await  this.#transactionRepository.getTotalTransaction(userId.id)
+            if (transactionResponse.totalAmount !== undefined) {
+                totalContainer.innerHTML = `<p>Totaal bedrag: €${transactionResponse.totalAmount}</p>`;
+                return transactionResponse.totalAmount;
+            } else {
+                totalContainer.innerHTML = `<p>Er is iets fout gegaan bij het halen van het totaalbedrag</p>`;
+                return 0; // return a default value if nothing is found
+            }
+        } catch (error) {
+            console.error("Error fetching total amount:", error);
+            totalContainer.innerHTML = `<p>Er is iets fout gegaan bij het halen van het totaalbedrag</p>`;
+            return 0;
+        }
+    }
+
+    //method to get the best date
+    async getBestDate(userId){
+        const bestContainer= document.getElementById("transaction-best")
+        try {
+            const transactionResponse= await  this.#transactionRepository.getBestDateTransaction(userId.id)
+            console.log(transactionResponse)
+            let formattedDate=this.#setFormatDate(transactionResponse.bestDate)
+            if (transactionResponse.bestDate !== undefined) {
+                bestContainer.innerHTML = `<p>Best verdiende dag: ${formattedDate}</p>`;
+                return formattedDate;
+            } else {
+                bestContainer.innerHTML = `<p>Er is iets fout gegaan bij het halen je beste dag</p>`;
+                return 0; // return a default value if nothing is found
+            }
+        } catch (error) {
+            console.error("Error fetching total amount:", error);
+            bestContainer.innerHTML = `<p>Er is iets fout gegaan bij het halen van je beste datum</p>`;
+            return 0;
+        }
+    }
+
+    //set the date format
+    #setFormatDate(date) {
+
+       date = new Date(date).toISOString().split('T')[0];
+       return date
+    }
+
+
+
 }

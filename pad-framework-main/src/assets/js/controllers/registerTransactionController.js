@@ -74,8 +74,7 @@ export class RegisterTransactionController extends Controller {
         const transactionForm = document.querySelector('.transaction-form');
 //styling for the transactionforms
         transactionForm.style.border = '2px solid #2F72B9';
-        transactionForm.style.backgroundColor = '#2F72B9';
-
+        transactionForm.style.color = '#2F72B9';
 
         const errorMessage = this.#registerTransactionView.querySelector(".error")
 

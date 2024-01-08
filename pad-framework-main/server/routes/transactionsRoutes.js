@@ -14,6 +14,8 @@ class TransactionsRoutes {
         this.#collectTransactions();
         this.#deleteTransaction();
         this.#editTransaction();
+        this.#getTotalTransaction()
+        this.#getBestDate()
     }
 
     //route initiated for posting the data to the database
@@ -89,6 +91,44 @@ class TransactionsRoutes {
                     res.status(this.#httpErrorCodes.HTTP_OK_CODE).json({ message: "Transaction rightfully changed" });
                 } else {
                     res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: "No transaction found for the provided ID" });
+                }
+            } catch (e) {
+                res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: e });
+            }
+        });
+    }
+
+    #getTotalTransaction() {
+        this.#app.get('/transactions/total/:user_id', async (req, res) => {
+            try {
+                const data = await this.#databaseHelper.handleQuery({
+                    query: "SELECT SUM(amount) AS totalAmount FROM transactions WHERE user_id=?",
+                    values: [req.params.user_id]
+                });
+
+                if (data[0].totalAmount !== null) {
+                    res.status(this.#httpErrorCodes.HTTP_OK_CODE).json({ totalAmount: data[0].totalAmount });
+                } else {
+                    res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: "No transactions found for the provided user ID" });
+                }
+            } catch (e) {
+                res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: e });
+            }
+        });
+    }
+
+    #getBestDate() {
+        this.#app.get('/transactions/maxAmountDate/:user_id', async (req, res) => {
+            try {
+                const data = await this.#databaseHelper.handleQuery({
+                    query: "SELECT date FROM transactions WHERE user_id=? ORDER BY amount DESC LIMIT 1",
+                    values: [req.params.user_id]
+                });
+
+                if (data.length > 0) {
+                    res.status(this.#httpErrorCodes.HTTP_OK_CODE).json({ bestDate: data[0].date });
+                } else {
+                    res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: "No transactions found for the provided user ID" });
                 }
             } catch (e) {
                 res.status(this.#httpErrorCodes.BAD_REQUEST_CODE).json({ reason: e });
